@@ -5,18 +5,24 @@ import Array "mo:base/Array";
 import Iter "mo:base/Iter";
 import Text "mo:base/Text";
 import Time "mo:base/Time";
+import Result "mo:base/Result";
+import Buffer "mo:base/Buffer";
 import Principal "mo:base/Principal";
 import { Taggr } "./Canisters";
 import Types "./Types";
 
 actor {
+  let sns1RootCanister = Principal.fromText("zxeu2-7aaaa-aaaaq-aaafa-cai");
+
   // initially supported SNS's
-  let sns1 : Types.SNSCanister = { 
+  let sns1 : Types.SNSData = {
+    id = 1;
     governanceCanister = Principal.fromText("zqfso-syaaa-aaaaq-aaafq-cai");  
     name = "SNS-1";
     ticker = "SNS";
   };
-  let oc : Types.SNSCanister = { 
+  let oc : Types.SNSData = { 
+    id = 2;
     governanceCanister = Principal.fromText("2jvtu-yqaaa-aaaaq-aaama-cai");  
     name = "OpenChat";
     ticker = "CHAT";
@@ -24,7 +30,7 @@ actor {
 
   stable var previousPost : Text = "";
   stable var lastTaggrResponse : Types.TaggrResult = #Err("No response yet");
-  stable var snsCanisters : [Types.SNSCanister] = [sns1, oc];
+  stable var supportedSNS : [Types.SNSData] = [sns1, oc];
 
   let ONE_DAY_IN_SECONDS = 86401;
   let THREE_DAYS_IN_SECONDS = 259200;
@@ -34,7 +40,7 @@ actor {
   let header = "# 📰 LATEST SNS PROPOSALS! \n" 
     # "It's time for your daily dose of SNS proposal updates!" 
     # GAP2 
-    # "This bot currently posts the active proposals of the #SNS1 and #OpenChat DAO's every day.";
+    # "This bot currently posts the active proposals of the SNS DAO's every day. Owned by #SNS1.";
 
   let voteSection = "## 🗳️ Where to Vote\n"
     # "- [ICLighthouse](https://avjzx-pyaaa-aaaaj-aadmq-cai.raw.ic0.app/ICSNS)\n"
@@ -51,9 +57,31 @@ actor {
     return lastTaggrResponse;
   };
 
-  public query func supportedSNSCanisters() : async [Types.SNSCanister] {
-    return snsCanisters;
+  public query func supportedProjects() : async [Types.SNSData] {
+    return supportedSNS;
   };
+
+  // used to add new SNS's to the bot in the future.
+  // public shared ({caller}) func addSNSData(governancePrincipal : Principal, name : Text, ticker : Text) : async Result.Result<Types.SNSData, Text> {
+  //   if(caller == sns1RootCanister){ 
+  //     let name = Array.find<Types.SNSData>(supportedSNS, func x = x.name == name);
+  //     let ticker = Array.find<Types.SNSData>(supportedSNS, func x = x.ticker == ticker);
+  //     let governanceCanister = Array.find<Types.SNSData>(supportedSNS, func x = x.governanceCanister == governanceCanister);
+  //     if (name != null or ticker != null or governanceCanister != null) {
+  //       return #err("SNS already exists");
+  //     };
+  //     let snsCanister : Types.SNSData = {
+  //       id = supportedSNS.size() + 1;
+  //       governanceCanister = governanceCanister;
+  //       name = name;
+  //       ticker = ticker;
+  //     };
+  //     Array.append(supportedSNS, snsCanister);
+  //     #ok(snsCanister)
+  //   } else {
+  //     #err("Unauthorized")
+  //   };
+  // };
 
   private func postToTaggr() : async () {
     let post = await generateCurrentPost();
@@ -63,7 +91,7 @@ actor {
   private func generateCurrentPost() : async Text {
     var proposalsBlock : Text = "";
 
-    for (source in Iter.fromArray(snsCanisters)) {
+    for (source in Iter.fromArray(supportedSNS)) {
       let sourceProposals = await generateProposalsBlock(source);
       proposalsBlock := proposalsBlock # sourceProposals;
     };
@@ -72,7 +100,7 @@ actor {
     return previousPost;
   };
 
-  private func generateProposalsBlock(snsCanister : Types.SNSCanister) : async Text {
+  private func generateProposalsBlock(snsCanister : Types.SNSData) : async Text {
     let proposals = await getProposalsFor(snsCanister);
     let formattedProposals = formatProposals(proposals);
     let sourceTitle = "## 🟢 Active on " # snsCanister.name # "\n";
@@ -84,7 +112,7 @@ actor {
     };
   };
 
-  private func getProposalsFor(snsCanister : Types.SNSCanister) : async [Types.ProposalData] {
+  private func getProposalsFor(snsCanister : Types.SNSData) : async [Types.ProposalData] {
     let params = {
       include_reward_status : [Int32] = [];
       before_proposal : ?Types.ProposalId = null;

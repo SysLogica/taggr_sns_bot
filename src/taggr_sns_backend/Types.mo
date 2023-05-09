@@ -7,7 +7,28 @@ module Types {
   // Custom types:
   public type ProposalPlatform = { #SNS; #OC };
   public type TaggrResult = { #Err : Text; #Ok : Nat64 };
-  public type SNSCanister = { governanceCanister: Principal; ticker: Text; name: Text; };
+  public type SNSData = { 
+    id: Nat;
+    governanceCanister: Principal; 
+    ticker: Text; 
+    name: Text; 
+  };
+  public type StableSNSData = { 
+    id: Nat;
+    governanceCanister: Text; 
+    ticker: Text; 
+    name: Text; 
+  };
+
+  // SNS Wasm Types
+  public type DeployedSns = {
+    root_canister_id : ?Principal;
+    governance_canister_id : ?Principal;
+    index_canister_id : ?Principal;
+    swap_canister_id : ?Principal;
+    ledger_canister_id : ?Principal;
+  };
+  public type ListDeployedSnsesResponse = { instances : [DeployedSns] };
 
   // Generated types:
   public type Account = { owner : ?Principal; subaccount : ?Subaccount };
