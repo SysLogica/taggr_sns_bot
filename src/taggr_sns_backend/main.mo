@@ -40,12 +40,12 @@ actor {
   let header = "# 📰 LATEST SNS PROPOSALS! \n" 
     # "It's time for your daily dose of SNS proposal updates!" 
     # GAP2 
-    # "This bot currently posts the active proposals of the SNS DAO's every day. Owned by #SNS1.";
+    # "This bot currently posts the active proposals of the SNS DAO's every day. Owned and controlled by SNS1.";
 
   let voteSection = "## 🗳️ Where to Vote\n"
     # "- [ICLighthouse](https://avjzx-pyaaa-aaaaj-aadmq-cai.raw.ic0.app/ICSNS)\n"
     # "- [OpenChat](https://oc.app/nsbx4-4iaaa-aaaar-afusa-cai) \n" 
-    # "- [DSCVR](https://dscvr.one/u/SNSProposalBot) \n";
+    # "- [DSCVR (SNS1 Only)](https://dscvr.one/u/SNSProposalBot) \n";
 
   let improveMe = "🤖 Help improve me, I'm [open source](https://github.com/nolyoi/taggr_sns_bot).\n";
 
@@ -61,13 +61,12 @@ actor {
     return supportedSNS;
   };
 
-  // used to add new SNS's to the bot in the future.
+  // GenericNervousSystemFunction can call something like this to add new SNS's to the bot in the future.
   // public shared ({caller}) func addSNSData(governancePrincipal : Principal, name : Text, ticker : Text) : async Result.Result<Types.SNSData, Text> {
   //   if(caller == sns1RootCanister){ 
   //     let name = Array.find<Types.SNSData>(supportedSNS, func x = x.name == name);
-  //     let ticker = Array.find<Types.SNSData>(supportedSNS, func x = x.ticker == ticker);
   //     let governanceCanister = Array.find<Types.SNSData>(supportedSNS, func x = x.governanceCanister == governanceCanister);
-  //     if (name != null or ticker != null or governanceCanister != null) {
+  //     if (name != null or governanceCanister != null) {
   //       return #err("SNS already exists");
   //     };
   //     let snsCanister : Types.SNSData = {
@@ -97,13 +96,14 @@ actor {
     };
 
     previousPost := header # GAP4 # proposalsBlock # voteSection # GAP2 # improveMe # GAP2;
+
     return previousPost;
   };
 
   private func generateProposalsBlock(snsCanister : Types.SNSData) : async Text {
     let proposals = await getProposalsFor(snsCanister);
     let formattedProposals = formatProposals(proposals);
-    let sourceTitle = "## 🟢 Active on " # snsCanister.name # "\n";
+    let sourceTitle = "## 🟢 Active on " # "#" # snsCanister.name # "\n";
 
     if (Array.size(proposals) > 0) {
       return sourceTitle # formattedProposals;
@@ -132,11 +132,14 @@ actor {
 
   private func formatProposals(proposals : [Types.ProposalData]) : Text {
     var proposalBlock = "";
+    var proposal_url = "";
 
     for (prop in Iter.fromArray(proposals)) {
       switch (prop.proposal) {
         case (?proposal) {
-          let post : Text = "- " # proposal.title # "(" # proposal.url # ") \n";
+          if(proposal.url != ""){ proposal_url := "(" # proposal.url # ") \n" };
+
+          let post : Text = "- " # proposal.title # proposal_url;
           proposalBlock := proposalBlock # post;
         };
         case (_) {};

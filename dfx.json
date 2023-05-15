@@ -5,16 +5,16 @@
       "type": "motoko"
     }
   },
-  "networks": {
-    "local": {
-      "bind": "127.0.0.1:8080",
-      "type": "ephemeral"
-    }
-  },
   "defaults": {
     "build": {
       "args": "",
       "packtool": "mops sources"
+    }
+  },
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:8080",
+      "type": "ephemeral"
     }
   },
   "output_env_file": ".env",

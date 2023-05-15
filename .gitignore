@@ -21,3 +21,6 @@ dist/
 .mops
 *.pem
 .env
+
+register.json
+upgrade.json
