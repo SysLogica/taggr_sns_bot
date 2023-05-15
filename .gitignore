@@ -24,3 +24,5 @@ dist/
 
 register.json
 upgrade.json
+register-generic-functions.json
+execute-generic-functions.json

@@ -13,6 +13,7 @@ If you want to test your project locally, you can use the following commands:
 dfx start --background
 
 # Install SNS canisters with SNS1 principals locally (MUST USE DFX 0.14.x+)
+dfx canister create taggr_sns_backend --specified-id 4dfug-nyaaa-aaaao-aifia-cai
 dfx canister create sns_governance --specified-id zqfso-syaaa-aaaaq-aaafq-cai
 dfx canister create sns_index --specified-id zlaol-iaaaa-aaaaq-aaaha-cai
 dfx canister create sns_ledger --specified-id zfcdd-tqaaa-aaaaq-aaaga-cai

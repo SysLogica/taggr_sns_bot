@@ -75,7 +75,7 @@ actor {
     };
   };
 
-  public shared ({ caller }) func addSnsData(snsData : Types.SNSDataInput) : async Result.Result<Types.SNSData, Text> {
+  public shared ({ caller }) func addNewSns(snsData : Types.SNSDataInput) : async Result.Result<Types.SNSData, Text> {
     if (caller != sns1GovernancePrincipal) { return #err("Unauthorized principal: " # Principal.toText(caller)); };
     let newSnsCanister : Types.SNSData = {
       id = supportedSNS.size() + 1;
