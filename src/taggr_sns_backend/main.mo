@@ -12,7 +12,7 @@ import { Taggr } "./Canisters";
 import Types "./Types";
 
 actor {
-  let sns1GovernanceCanister = Principal.fromText("zxeu2-7aaaa-aaaaq-aaafa-cai");
+  let sns1GovernanceCanister = Principal.fromText("rrkah-fqaaa-aaaaa-aaaaq-cai");
 
   // initially supported SNS's
   let sns1 : Types.SNSData = {
@@ -78,6 +78,24 @@ actor {
         return #Err("Governance Canister already exists");
       };
 
+      let params = {
+        include_reward_status : [Int32] = [];
+        before_proposal : ?Types.ProposalId = null;
+        limit : Nat32 = 10;
+        exclude_type : [Nat64] = [];
+        include_status : [Int32] = [1];
+      };
+
+      let GovCanister : actor {
+        list_proposals : shared query Types.ListProposals -> async Types.ListProposalsResponse;
+      } = actor (Principal.toText(snsData.governanceCanister));
+
+      try { 
+        let result = await GovCanister.list_proposals(params); 
+      } catch e {
+        return #Err(Principal.toText(snsData.governanceCanister) # " is not an SNS governance canister");
+      };
+
       #Ok("Proposal to add " # snsData.name # " to the snsproposals Taggr bot" );
     } else {
       #Err("Unauthorized principal: " # Principal.toText(caller));
@@ -121,10 +139,10 @@ actor {
     return previousPost;
   };
 
-  private func generateProposalsBlock(snsCanister : Types.SNSData) : async Text {
-    let proposals = await getProposalsFor(snsCanister);
+  private func generateProposalsBlock(snsData : Types.SNSData) : async Text {
+    let proposals = await getProposalsFor(snsData.governanceCanister);
     let formattedProposals = formatProposals(proposals);
-    let sourceTitle = "## 🟢 Active on " # "#" # snsCanister.name # "\n";
+    let sourceTitle = "## 🟢 Active on " # "#" # snsData.name # "\n";
 
     if (Array.size(proposals) > 0) {
       return sourceTitle # formattedProposals;
@@ -133,7 +151,7 @@ actor {
     };
   };
 
-  private func getProposalsFor(snsCanister : Types.SNSData) : async [Types.ProposalData] {
+  public func getProposalsFor(principal : Principal) : async [Types.ProposalData] {
     let params = {
       include_reward_status : [Int32] = [];
       before_proposal : ?Types.ProposalId = null;
@@ -144,10 +162,9 @@ actor {
 
     let GovCanister : actor {
       list_proposals : shared query Types.ListProposals -> async Types.ListProposalsResponse;
-    } = actor (Principal.toText(snsCanister.governanceCanister));
+    } = actor (Principal.toText(principal));
 
     let response = await GovCanister.list_proposals(params);
-
     return response.proposals
   };
 
