@@ -410,13 +410,13 @@ service : (Governance) -> {
   get_root_canister_status : (null) -> (CanisterStatusResultV2);
   get_running_sns_version : (record {}) -> (GetRunningSnsVersionResponse) query;
   get_sns_initialization_parameters : (record {}) -> (
-      GetSnsInitializationParametersResponse,
-    ) query;
+    GetSnsInitializationParametersResponse
+  ) query;
   list_nervous_system_functions : () -> (
-      ListNervousSystemFunctionsResponse,
-    ) query;
+    ListNervousSystemFunctionsResponse
+  ) query;
   list_neurons : (ListNeurons) -> (ListNeuronsResponse) query;
   list_proposals : (ListProposals) -> (ListProposalsResponse) query;
   manage_neuron : (ManageNeuron) -> (ManageNeuronResponse);
   set_mode : (SetMode) -> (record {});
-}
+};

@@ -8,22 +8,22 @@ module Types {
   public type ProposalPlatform = { #SNS; #OC };
   public type TaggrResult = { #Err : Text; #Ok : Nat64 };
   public type ProposalValidatorResult = { #Err : Text; #Ok : Text };
-  public type SNSData = { 
-    id: Nat;
-    governanceCanister: Principal; 
-    ticker: Text; 
-    name: Text; 
+  public type SNSData = {
+    id : Nat;
+    governanceCanister : Principal;
+    ticker : Text;
+    name : Text;
   };
-  public type SNSDataInput = { 
-    governanceCanister: Principal; 
-    ticker: Text; 
-    name: Text; 
+  public type SNSDataInput = {
+    governanceCanister : Principal;
+    ticker : Text;
+    name : Text;
   };
-  public type StableSNSData = { 
-    id: Nat;
-    governanceCanister: Text; 
-    ticker: Text; 
-    name: Text; 
+  public type StableSNSData = {
+    id : Nat;
+    governanceCanister : Text;
+    ticker : Text;
+    name : Text;
   };
 
   // SNS Wasm Types

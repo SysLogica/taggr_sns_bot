@@ -74,12 +74,12 @@ service : (SnsRootCanister) -> {
   canister_status : (CanisterIdRecord) -> (CanisterStatusResult);
   get_build_metadata : () -> (text) query;
   get_sns_canisters_summary : (GetSnsCanistersSummaryRequest) -> (
-      GetSnsCanistersSummaryResponse,
-    );
+    GetSnsCanistersSummaryResponse
+  );
   list_sns_canisters : (record {}) -> (ListSnsCanistersResponse) query;
   register_dapp_canister : (RegisterDappCanisterRequest) -> (record {});
   register_dapp_canisters : (RegisterDappCanistersRequest) -> (record {});
   set_dapp_controllers : (SetDappControllersRequest) -> (
-      SetDappControllersResponse,
-    );
-}
+    SetDappControllersResponse
+  );
+};
