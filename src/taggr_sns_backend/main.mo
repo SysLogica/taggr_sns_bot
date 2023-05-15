@@ -12,7 +12,7 @@ import { Taggr } "./Canisters";
 import Types "./Types";
 
 actor {
-  let sns1RootCanister = Principal.fromText("zxeu2-7aaaa-aaaaq-aaafa-cai");
+  let sns1GovernanceCanister = Principal.fromText("zxeu2-7aaaa-aaaaq-aaafa-cai");
 
   // initially supported SNS's
   let sns1 : Types.SNSData = {
@@ -33,7 +33,6 @@ actor {
   stable var supportedSNS : [Types.SNSData] = [sns1, oc];
 
   let ONE_DAY_IN_SECONDS = 86401;
-  let THREE_DAYS_IN_SECONDS = 259200;
   let GAP4 = "\n\n\n\n";
   let GAP2 = "\n\n";
 
@@ -49,6 +48,9 @@ actor {
 
   let improveMe = "🤖 Help improve me, I'm [open source](https://github.com/nolyoi/taggr_sns_bot).\n";
 
+
+
+  // PUBLIC QUERY FUNCS
   public query func lastPost() : async Text {
     return previousPost;
   };
@@ -61,27 +63,46 @@ actor {
     return supportedSNS;
   };
 
-  // GenericNervousSystemFunction can call something like this to add new SNS's to the bot in the future.
-  // public shared ({caller}) func addSNSData(governancePrincipal : Principal, name : Text, ticker : Text) : async Result.Result<Types.SNSData, Text> {
-  //   if(caller == sns1RootCanister){ 
-  //     let name = Array.find<Types.SNSData>(supportedSNS, func x = x.name == name);
-  //     let governanceCanister = Array.find<Types.SNSData>(supportedSNS, func x = x.governanceCanister == governanceCanister);
-  //     if (name != null or governanceCanister != null) {
-  //       return #err("SNS already exists");
-  //     };
-  //     let snsCanister : Types.SNSData = {
-  //       id = supportedSNS.size() + 1;
-  //       governanceCanister = governanceCanister;
-  //       name = name;
-  //       ticker = ticker;
-  //     };
-  //     Array.append(supportedSNS, snsCanister);
-  //     #ok(snsCanister)
-  //   } else {
-  //     #err("Unauthorized")
-  //   };
-  // };
 
+
+  // GENERIC NERVOUS SYSTEM FUNCS AND VALIDATORS
+  // have to use custom result type here because the format is different between rust and motoko, SNS expects the rust format.
+  public shared ({caller}) func snsDataValidator(snsData : Types.SNSDataInput) : async Types.ProposalValidatorResult {
+    if(caller == sns1GovernanceCanister){ 
+      let validName = Array.find<Types.SNSData>(supportedSNS, func x = x.name == snsData.name);
+      let validGovernancePrincipal = Array.find<Types.SNSData>(supportedSNS, func x = x.governanceCanister == snsData.governanceCanister);
+      
+      if (validName != null) {
+        return #Err("Name already exists");
+      } else if(validGovernancePrincipal != null) {
+        return #Err("Governance Canister already exists");
+      };
+
+      #Ok("Proposal to add " # snsData.name # " to the snsproposals Taggr bot" );
+    } else {
+      #Err("Unauthorized principal: " # Principal.toText(caller));
+    };
+  };
+
+  public shared ({caller}) func addSnsData(snsData : Types.SNSDataInput) : async Result.Result<Types.SNSData, Text> {
+    if(caller == sns1GovernanceCanister){ 
+      let newSnsCanister : Types.SNSData = {
+        id = supportedSNS.size() + 1;
+        governanceCanister = snsData.governanceCanister;
+        name = snsData.name;
+        ticker = snsData.ticker;
+      };
+
+      supportedSNS := Array.append<Types.SNSData>(supportedSNS, [newSnsCanister]);
+      #ok(newSnsCanister)
+    } else {
+      #err("Unauthorized principal: " # Principal.toText(caller));
+    };
+  };
+
+
+
+  // PRIVATE FUNCS
   private func postToTaggr() : async () {
     let post = await generateCurrentPost();
     lastTaggrResponse := await Taggr.add_post(post, [], null, ?"SNS-1");

@@ -7,8 +7,14 @@ module Types {
   // Custom types:
   public type ProposalPlatform = { #SNS; #OC };
   public type TaggrResult = { #Err : Text; #Ok : Nat64 };
+  public type ProposalValidatorResult = { #Err : Text; #Ok : Text };
   public type SNSData = { 
     id: Nat;
+    governanceCanister: Principal; 
+    ticker: Text; 
+    name: Text; 
+  };
+  public type SNSDataInput = { 
     governanceCanister: Principal; 
     ticker: Text; 
     name: Text; 
