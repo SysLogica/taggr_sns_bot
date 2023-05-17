@@ -39,7 +39,7 @@ actor {
 
   let header = "# 📰 LATEST SNS PROPOSALS! \n" # "It's time for your daily dose of SNS proposal updates!" # GAP2 # "This bot currently posts the active proposals of the SNS DAO's every day. Owned and controlled by SNS1.";
   let voteSection = "## 🗳️ Where to Vote\n" # "- [ICLighthouse](https://avjzx-pyaaa-aaaaj-aadmq-cai.raw.ic0.app/ICSNS)\n" # "- [OpenChat](https://oc.app/nsbx4-4iaaa-aaaar-afusa-cai) \n" # "- [DSCVR (SNS1 Only)](https://dscvr.one/u/SNSProposalBot) \n";
-  let improveMe = "🤖 Help improve me, I'm [open source](https://github.com/nolyoi/taggr_sns_bot).\n";
+  let improveMe = "🤖 Help improve me, I'm [open source](https://github.com/syslogica/taggr_sns_bot).\n";
 
   // PUBLIC QUERY FUNCS
   public query func lastPost() : async Text {
@@ -85,7 +85,7 @@ actor {
     };
 
     supportedSNS := Array.append<Types.SNSData>(supportedSNS, [newSnsCanister]);
-    #ok(newSnsCanister);
+    return #ok(newSnsCanister);
   };
 
   // PRIVATE FUNCS
@@ -119,7 +119,7 @@ actor {
     };
   };
 
-  public func getProposalsFor(principal : Principal) : async [Types.ProposalData] {
+  private func getProposalsFor(principal : Principal) : async [Types.ProposalData] {
     let params : Types.ListProposals = {
       include_reward_status = [];
       before_proposal = null;
@@ -142,10 +142,10 @@ actor {
       switch (prop.proposal) {
         case (?proposal) {
           if (proposal.url != "") {
-            proposal_url := "(" # proposal.url # ") \n";
+            proposal_url := "(" # proposal.url # ")";
           };
 
-          let post : Text = "- " # proposal.title # proposal_url;
+          let post : Text = "- " # proposal.title # proposal_url # "\n";
           proposalBlock := proposalBlock # post;
         };
         case (_) {};
