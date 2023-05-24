@@ -1,12 +1,10 @@
 import { setTimer; recurringTimer } "mo:base/Timer";
 import Nat "mo:base/Nat";
-import Nat64 "mo:base/Nat64";
 import Array "mo:base/Array";
 import Iter "mo:base/Iter";
 import Text "mo:base/Text";
 import Time "mo:base/Time";
 import Result "mo:base/Result";
-import Buffer "mo:base/Buffer";
 import Principal "mo:base/Principal";
 import { Taggr } "./Canisters";
 import Types "./Types";
@@ -17,13 +15,11 @@ actor {
 
   // initially supported SNS's
   let sns1 : Types.SNSData = {
-    id = 1;
     governanceCanister = Principal.fromText("zqfso-syaaa-aaaaq-aaafq-cai");
     name = "SNS-1";
     ticker = "SNS";
   };
   let oc : Types.SNSData = {
-    id = 2;
     governanceCanister = Principal.fromText("2jvtu-yqaaa-aaaaq-aaama-cai");
     name = "OpenChat";
     ticker = "CHAT";
@@ -57,12 +53,12 @@ actor {
   // GENERIC NERVOUS SYSTEM FUNCS AND VALIDATORS
   // have to use custom result type here because the format is different between rust and motoko, SNS expects the rust format.
   public shared ({ caller }) func snsDataValidator(snsData : Types.SNSDataInput) : async Types.ProposalValidatorResult {
-    if (caller != sns1GovernancePrincipal) { return #Err("Unauthorized principal: " # Principal.toText(caller)); };
+    if (caller != sns1GovernancePrincipal) { return #Err("Unauthorized caller: " # Principal.toText(caller)); };
     switch (validateSnsName(snsData.name)) {
       case (#ok(principal)) {
         switch (await validateSnsGovernancePrincipal(snsData.governanceCanister)) {
           case (#ok(principal)) {
-            return #Ok("Proposal to add " # snsData.name # " (" # snsData.ticker # ") to @snsproposals taggr bot");
+            return #Ok("Add " # snsData.name # " (" # snsData.ticker # ") to @snsproposals taggr bot");
           };
           case (#err(e)) {
             return #Err(e);
@@ -76,16 +72,42 @@ actor {
   };
 
   public shared ({ caller }) func addNewSns(snsData : Types.SNSDataInput) : async Result.Result<Types.SNSData, Text> {
-    if (caller != sns1GovernancePrincipal) { return #err("Unauthorized principal: " # Principal.toText(caller)); };
-    let newSnsCanister : Types.SNSData = {
-      id = supportedSNS.size() + 1;
+    if (caller != sns1GovernancePrincipal) { return #err("Unauthorized caller: " # Principal.toText(caller)); };
+    let newSnsData : Types.SNSData = {
       governanceCanister = snsData.governanceCanister;
       name = snsData.name;
       ticker = snsData.ticker;
     };
 
-    supportedSNS := Array.append<Types.SNSData>(supportedSNS, [newSnsCanister]);
-    return #ok(newSnsCanister);
+    supportedSNS := Array.append<Types.SNSData>(supportedSNS, [newSnsData]);
+    return #ok(newSnsData);
+  };
+
+  public shared ({ caller }) func snsRemovalValidator(governancePrincipal : Principal) : async Types.ProposalValidatorResult {
+    if (caller != sns1GovernancePrincipal) { return #Err("Unauthorized caller: " # Principal.toText(caller)); };
+    let result = await findByPrincipal(governancePrincipal);
+    switch(result) {
+      case (#err(msg)) {
+        return #Err(msg);
+      };
+      case (#ok(snsData)) {
+        return #Ok("Remove " # snsData.name # " (" # snsData.ticker # ") from @snsproposals taggr bot");
+      };
+    };
+  };
+
+  public shared ({ caller }) func removeSns(governancePrincipal : Principal) : async Result.Result<Text, Text> {
+    if (caller != sns1GovernancePrincipal) { return #err("Unauthorized caller: " # Principal.toText(caller)); };
+    let result = await findByPrincipal(governancePrincipal);
+    switch (result) {
+      case(#err(msg)) {
+        return #err(msg);
+      };
+      case(#ok(snsData)) {
+        supportedSNS := Array.mapFilter<Types.SNSData, Types.SNSData>(supportedSNS, func snsItem = snsItem.governanceCanister != governancePrincipal);
+        return #ok("Removed " # snsData.name # " (" # snsData.ticker # ") from @snsproposals taggr bot");
+      };
+    };
   };
 
   // PRIVATE FUNCS
@@ -105,6 +127,18 @@ actor {
     previousPost := header # GAP4 # proposalsBlock # voteSection # GAP2 # improveMe # GAP2;
 
     return previousPost;
+  };
+
+  private func findByPrincipal(governancePrincipal : Principal) : async Result.Result<Types.SNSData, Text> {
+    let data = Array.find<Types.SNSData>(supportedSNS, func sns = sns.governanceCanister == governancePrincipal);
+    switch (data) {
+      case (null) {
+        return #err("No SNS with that governance principal found");
+      };
+      case (?snsData) {
+        return #ok(snsData);
+      };
+    };
   };
 
   private func generateProposalsBlock(snsData : Types.SNSData) : async Text {

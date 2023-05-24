@@ -9,7 +9,6 @@ module Types {
   public type TaggrResult = { #Err : Text; #Ok : Nat64 };
   public type ProposalValidatorResult = { #Err : Text; #Ok : Text };
   public type SNSData = {
-    id : Nat;
     governanceCanister : Principal;
     ticker : Text;
     name : Text;
@@ -20,7 +19,6 @@ module Types {
     name : Text;
   };
   public type StableSNSData = {
-    id : Nat;
     governanceCanister : Text;
     ticker : Text;
     name : Text;
